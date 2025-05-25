@@ -7,7 +7,6 @@ export default function Answers() {
 
   const lastApplication = applications[applications.length - 1];
 
- 
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 export default function Form() {
   const [name, setName] = useState('');
-  const [age, setAge] = useState('');
+  const [dob, setDob] = useState('');
   const [city, setCity] = useState('');
   const [salary, setSalary] = useState('');
   const [reason, setReason] = useState('');
@@ -11,8 +10,7 @@ export default function Form() {
   const [secondQuestion, setSecondQuestion] = useState('');
   const [thirdQuestion, setThirdQuestion] = useState('');
   const [errors, setErrors] = useState({});
-  const [alert, setAlert] = useState({ show: false, message: '', type: 'success' }); // ⬅️ تم تحريكها إلى الداخل
-  const navigate = useNavigate();
+  const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
 
   const validate = () => {
     const newErrors = {};
@@ -23,13 +21,25 @@ export default function Form() {
       isValid = false;
     }
 
-    if (!age) {
-      newErrors.age = 'الرجاء تحديد العمر';
+    if (!dob) {
+      newErrors.age = 'الرجاء اختيار تاريخ الميلاد';
       isValid = false;
+    } else {
+      const today = new Date();
+      const birthDate = new Date(dob);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18 || age > 70) {
+        newErrors.age = 'العمر يجب أن يكون بين 18 و70 سنة';
+        isValid = false;
+      }
     }
 
     if (!city) {
-      newErrors.city = 'الرجاء تحديد المدينة';
+      newErrors.city = 'الرجاء اختيار المدينة';
       isValid = false;
     }
 
@@ -54,8 +64,16 @@ export default function Form() {
 
   const submitBtn = (e) => {
     e.preventDefault();
-    
+
     if (validate()) {
+      const today = new Date();
+      const birthDate = new Date(dob);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
       const data = {
         name,
         age,
@@ -71,23 +89,20 @@ export default function Form() {
       savedData.push(data);
       localStorage.setItem('applications', JSON.stringify(savedData));
 
-      // ✅ تنبيه نجاح
       setAlert({
         show: true,
         message: 'تم التقديم بنجاح!',
-        type: 'success'
+        type: 'success',
       });
 
       setTimeout(() => {
-        navigate('/answers');
+        window.location.href = '/answers'; 
       }, 1500);
-
     } else {
-      // ❌ تنبيه خطأ
       setAlert({
         show: true,
         message: 'يرجى تصحيح الأخطاء قبل التقديم.',
-        type: 'error'
+        type: 'error',
       });
 
       setTimeout(() => {
@@ -98,23 +113,24 @@ export default function Form() {
 
   return (
     <>
-      {/* التنبيه */}
       {alert.show && (
-        <div className={`fixed top-4 right-4 ${alert.type === 'success' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'} border-l-4 p-4 rounded shadow-lg z-50 transition-opacity duration-300 animate-fade-in-out`}>
+        <div
+          className={`fixed top-4 right-4 ${
+            alert.type === 'success'
+              ? 'bg-green-100 border-green-500 text-green-700'
+              : 'bg-red-100 border-red-500 text-red-700'
+          } border-l-4 p-4 rounded shadow-lg z-50 transition-opacity duration-300 animate-fade-in-out`}
+        >
           <p>{alert.message}</p>
         </div>
       )}
 
-      {/* النموذج */}
       <div className="min-h-screen bg-sky-100 flex items-center justify-center p-6">
-        <form
-          onSubmit={submitBtn}
-          className="bg-white shadow-lg rounded-lg p-8 max-w-2xl w-full space-y-6"
-        >
+        <form onSubmit={submitBtn} className="bg-white shadow-lg rounded-lg p-8 max-w-2xl w-full space-y-6">
           <h1 className="text-2xl font-bold text-center text-gray-800">التقديم على الوظيفة</h1>
           <h1 className="text-sm font-semibold text-gray-800 underline text-center">جميع الحقول مطلوبة</h1>
 
-          {/* اسم المستخدم */}
+    
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">الاسم</label>
             <input
@@ -126,23 +142,19 @@ export default function Form() {
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
 
-          {/* العمر */}
+     
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">العمر</label>
-            <select
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ الميلاد</label>
+            <input
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
               className={`w-full border ${errors.age ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
-            >
-              <option value="">اختر العمر</option>
-              {[...Array(53)].map((_, i) => (
-                <option key={i + 18} value={i + 18}>{i + 18}</option>
-              ))}
-            </select>
+            />
             {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
           </div>
 
-          {/* المدينة */}
+     
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
             <select
@@ -164,7 +176,7 @@ export default function Form() {
             {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
           </div>
 
-          {/* الراتب المتوقع */}
+       
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">الراتب المتوقع</label>
             <div className="space-y-2">
@@ -202,7 +214,7 @@ export default function Form() {
             {errors.salary && <p className="text-red-500 text-sm mt-1">{errors.salary}</p>}
           </div>
 
-          {/* السبب */}
+    
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">لماذا تريد التقديم لهذه الوظيفة؟</label>
             <textarea
@@ -214,35 +226,89 @@ export default function Form() {
             {errors.reason && <p className="text-red-500 text-sm mt-1">{errors.reason}</p>}
           </div>
 
-          {/* الأسئلة */}
-          <div>
-            <div className="flex-col items-center">
-              <p>هل لديك خبرة سابقة؟</p><br />
-              <label><input type="radio" name="q1" value="yes" checked={firstQuestion === 'yes'} onChange={() => setFirstQuestion('yes')} /> نعم</label> <br />
-              <label><input type="radio" name="q1" value="no" checked={firstQuestion === 'no'} onChange={() => setFirstQuestion('no')} /> لا</label>
+    
+          <div className="space-y-4">
+            <div>
+              <p>هل لديك خبرة سابقة؟</p>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="q1"
+                  value="yes"
+                  checked={firstQuestion === 'yes'}
+                  onChange={() => setFirstQuestion('yes')}
+                />
+                <p>نعم</p>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="q1"
+                  value="no"
+                  checked={firstQuestion === 'no'}
+                  onChange={() => setFirstQuestion('no')}
+                />
+                <p>لا</p>
+              </label>
             </div>
 
-            <div className="flex-col items-center gap-2">
-              <p>هل يمكنك العمل تحت ضغط؟</p> <br />
-              <label><input type="radio" name="q2" value="yes" checked={secondQuestion === 'yes'} onChange={() => setSecondQuestion('yes')} /> نعم</label> <br />
-              <label><input type="radio" name="q2" value="no" checked={secondQuestion === 'no'} onChange={() => setSecondQuestion('no')} /> لا</label>
+            <div>
+              <p>هل يمكنك العمل تحت ضغط؟</p>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="q2"
+                  value="yes"
+                  checked={secondQuestion === 'yes'}
+                  onChange={() => setSecondQuestion('yes')}
+                />
+                <p>نعم</p>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="q2"
+                  value="no"
+                  checked={secondQuestion === 'no'}
+                  onChange={() => setSecondQuestion('no')}
+                />
+                <p>لا</p>
+              </label>
             </div>
 
-            <div className="flex-col items-center gap-2">
-              <p>هل أنت على استعداد للعمل لساعات إضافية؟</p> <br />
-              <label><input type="radio" name="q3" value="yes" checked={thirdQuestion === 'yes'} onChange={() => setThirdQuestion('yes')} /> نعم</label><br />
-              <label><input type="radio" name="q3" value="no" checked={thirdQuestion === 'no'} onChange={() => setThirdQuestion('no')} /> لا</label>
+            <div>
+              <p>هل أنت على استعداد للعمل لساعات إضافية؟</p>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="q3"
+                  value="yes"
+                  checked={thirdQuestion === 'yes'}
+                  onChange={() => setThirdQuestion('yes')}
+                />
+                <p>نعم</p>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="q3"
+                  value="no"
+                  checked={thirdQuestion === 'no'}
+                  onChange={() => setThirdQuestion('no')}
+                />
+                <p>لا</p>
+              </label>
             </div>
 
             {errors.questions && <p className="text-red-500 text-sm mt-1">{errors.questions}</p>}
           </div>
 
-          {/* زر الإرسال */}
+      
           <button
             type="submit"
             className="w-full py-2 bg-blue-300 hover:bg-blue-500 text-black font-semibold rounded-lg transition"
           >
-            إرسال الطلب
+            إرسال 
           </button>
         </form>
       </div>
